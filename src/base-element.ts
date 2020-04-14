@@ -30,7 +30,7 @@ export class BaseLit extends LitElement {
     }
 
 
-    fire(name: string, value: any, bubbles = false) {
+    fire(name: string, value: any = null, bubbles = false) {
         if (!bubbles)
             this.dispatchEvent(new CustomEvent(name, { detail: value }));
         else
@@ -57,11 +57,11 @@ export class BaseLit extends LitElement {
     }
 
     /**
-     * 
-     * @param scrollTargetY pixels to scroll. Ej: 
+     *
+     * @param scrollTargetY pixels to scroll. Ej:
         const ticketsBlockPositionY = this.$.contact.getBoundingClientRect().top + Element.scrollTop;
      * @param time Time to scroll
-     * @param easing 
+     * @param easing
      * @param target scrollTarget Element
      */
     //'easeOutSine' | 'easeOutSine' | 'easeInOutQuint'
@@ -103,9 +103,9 @@ export class BaseLit extends LitElement {
     }
 
     /**
-     * 
+     *
      * @param {*} element : The HTMLElement to add,remove or toggle the classes to
-     * @param {*} classesList : Either a String or an Array 
+     * @param {*} classesList : Either a String or an Array
      * @param {*} option : The option to select the operation 0 to toggle, 1 to add, 2 to remove
      */
     public toggleAddRemoveClasses(element: HTMLElement, classesList: string | [string], option = 0): boolean {

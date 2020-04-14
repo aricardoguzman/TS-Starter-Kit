@@ -13,7 +13,7 @@
     "start": "npm run build && npm run analyze && run gen",
     "gen": "eleventy --config=.eleventy.cjs",
     "analyze": "wca analyze \"src/**/*.ts\" --outFile custom-elements.json",
-    "serve": "run build && es-dev-server --node-resolve --watch",
+    "serve": "run build & es-dev-server --node-resolve --watch",
     "serve:watch": "es-dev-server --node-resolve --watch & npm run build:watch",
     "test": "karma start karma.conf.cjs",
     "test:watch": "karma start karma.conf.cjs --auto-watch=true --single-run=false",
