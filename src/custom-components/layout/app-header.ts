@@ -11,13 +11,25 @@ export class AppHeader extends BaseLit {
   static styles = [
     TypographyStyle,
     css`
+
+      :host([top]){
+        background-color: transparent;
+        transform: translateY(0);
+      }
+
+      :host([show]){
+        transform: translateY(0);
+        opacity: 1;
+      }
+
       :host {
-        background-color: var(--app-header-bg-color);
+        background-color: var(--app-header-bg-color, blue);
         width: 100%;
         display: flex;
         height: var(--app-header-height, 64px);
-        transition: opacity 300ms linear;
+        transition: opacity 300ms linear, transform 100ms ease;
         opacity: 1;
+        transform: translateY(-100%);
       }
 
       .prefix, .suffix{
@@ -43,6 +55,11 @@ export class AppHeader extends BaseLit {
   @property()
   title = "Header"
 
+  @property({ type: Boolean, reflect: true })
+  top = true;
+
+  @property({ type: Boolean, reflect: true })
+  show = true;
 
   render() {
     return html`
@@ -84,10 +101,19 @@ export class AppHeader extends BaseLit {
   }
 
   private showHeader(direction: number, current: number) {
-    if (current >= 107 && direction > 0) {
-      this.style.opacity = '0';
-    } else {
+
+    if (current <= 0) {
+      this.top = true;
       this.style.opacity = '';
+    } else {
+      this.top = false;
+      if (current >= 90 && direction > 0) {
+        this.style.opacity = '0';
+        this.show = false;
+      } else {
+        this.style.opacity = (current >= 90) ? '1' : (current / 90) + '';
+        this.show = true;
+      }
     }
 
   }
