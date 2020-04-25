@@ -3,4 +3,4 @@
 /test/
 
 # top level source
-/dist
+#/dist
