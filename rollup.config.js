@@ -1,34 +1,29 @@
+import merge from 'deepmerge'
+// use createSpaConfig for bundling a Single Page App
+import { createBasicConfig } from '@open-wc/building-rollup'
+// import commonjs from '@rollup/plugin-commonjs'
 
-import filesize from 'rollup-plugin-filesize'
-import { terser } from 'rollup-plugin-terser'
-import resolve from 'rollup-plugin-node-resolve'
-import replace from '@rollup/plugin-replace'
+const baseConfig = createBasicConfig({
+  // use the outputdir option to modify where files are output
+  // outputDir: 'dist',
 
-export default {
-  input: 'dist/main-app.js',
-  output: {
-    file: 'main-app.bundled.js',
-    format: 'esm'
-  },
-  onwarn (warning) {
-    if (warning.code !== 'THIS_IS_UNDEFINED') {
-      console.error(`(!) ${warning.message}`)
-    }
-  },
-  plugins: [
-    replace({ 'Reflect.decorate': 'undefined' }),
-    resolve(),
-    terser({
-      module: true,
-      warnings: true,
-      mangle: {
-        properties: {
-          regex: /^__/
-        }
-      }
-    }),
-    filesize({
-      showBrotliSize: true
-    })
-  ]
-}
+  // if you need to support older browsers, such as IE11, set the legacyBuild
+  // option to generate an additional build just for this browser
+  // legacyBuild: true,
+
+  // development mode creates a non-minified build for debugging or development
+  developmentMode: process.env.ROLLUP_WATCH === 'true',
+
+  // set to true to inject the service worker registration into your index.html
+  injectServiceWorker: true
+})
+
+export default merge(baseConfig, {
+  // if you use createSpaConfig, you can use your index.html as entrypoint,
+  // any <script type="module"> inside will be bundled by rollup
+  input: './index.html'
+
+  // alternatively, you can use your JS as entrypoint for rollup and
+  // optionally set a HTML template manually
+  // input: './app.js',
+})

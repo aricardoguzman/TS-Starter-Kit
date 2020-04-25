@@ -2,7 +2,7 @@ import { BaseLit, customElement, property, css, html } from '../../base-element'
 
 @customElement('app-drawer')
 export class AppDrawer extends BaseLit {
-    static styles = [css`
+  static styles = [css`
      :host {
         position: fixed;
         z-index: 1;
@@ -93,138 +93,139 @@ export class AppDrawer extends BaseLit {
       }
     `];
 
-    render() {
-        return html`
+  render() {
+    return html`
         <div id="scrim" class="${this.opened ? 'visible' : ''}" @click="${this.close}"></div>
         <div id="content" ?opened="${this.opened}" ?persistent="${this.persistent}" ?swipe-open="${this.swipeOpen}">
         <slot></slot>
         </div>`
+  }
+
+  /**
+    * The opened state of the drawer.
+    */
+  @property({ type: Boolean, reflect: true })
+  opened = false;
+
+
+  @property({ type: Boolean, reflect: true })
+  swipeOpen = false
+
+  /**
+   * The drawer does not have a scrim and cannot be swiped close.
+   */
+  @property({ type: Boolean, reflect: true })
+  persistent = false;
+
+  /**
+   * The computed, read-only position of the drawer on the screen ('left' or
+   * 'right').
+   */
+  @property({ type: String, reflect: true })
+  position = 'left';
+
+
+  /**
+   * Trap keyboard focus when the drawer is opened and not persistent.
+   */
+  @property({ type: Boolean })
+  noFocusTrap = false;
+
+  /**
+   * Disables swiping on the drawer.
+   */
+  @property({ type: Boolean })
+  disableSwipe = false;
+
+  @property({ type: Object })
+  props: { [k: string]: any } = {
+    _translateOffset: 0,
+    _trackDetails: undefined,
+    _drawerState: 0,
+    _boundEscKeydownHandler: undefined,
+    _firstTabStop: undefined,
+    _lastTabStop: undefined,
+
+  }
+
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+
+    this.props['_boundEscKeydownHandler'] = this._escKeydownHandler.bind(this);
+    this.props['_tabKeydownHandler'] = this._tabKeydownHandler.bind(this);
+    this.addEventListener('keydown', this.props._tabKeydownHandler);
+    this.addEventListener('keydown', this.props._boundExcKeydownHandler);
+
+    this.fire('app-reset-layout');
+  }
+
+  private _tabKeydownHandler(event: { keyCode: number; shiftKey: any; preventDefault: () => void; }): void {
+    if (this.noFocusTrap) {
+      return;
     }
 
-    /**
-      * The opened state of the drawer.
-      */
-    @property({ type: Boolean, reflect: true })
-    opened = false;
-
-
-    @property({ type: Boolean, reflect: true })
-    swipeOpen = false
-
-    /**
-     * The drawer does not have a scrim and cannot be swiped close.
-     */
-    @property({ type: Boolean, reflect: true })
-    persistent = false;
-
-    /**
-     * The computed, read-only position of the drawer on the screen ('left' or
-     * 'right').
-     */
-    @property({ type: String, reflect: true })
-    position = 'left';
-
-
-    /**
-     * Trap keyboard focus when the drawer is opened and not persistent.
-     */
-    @property({ type: Boolean })
-    noFocusTrap = false;
-
-    /**
-     * Disables swiping on the drawer.
-     */
-    @property({ type: Boolean })
-    disableSwipe = false;
-
-    @property({ type: Object })
-    props: { [k: string]: any } = {
-        _translateOffset: 0,
-        _trackDetails: undefined,
-        _drawerState: 0,
-        _boundEscKeydownHandler: undefined,
-        _firstTabStop: undefined,
-        _lastTabStop: undefined,
-
-    }
-
-
-    public connectedCallback(): void {
-        super.connectedCallback();
-
-        this.props['_boundEscKeydownHandler'] = this._escKeydownHandler.bind(this);
-        this.props['_tabKeydownHandler'] = this._tabKeydownHandler.bind(this);
-        this.addEventListener('keydown', this.props._tabKeydownHandler);
-        this.addEventListener('keydown', this.props._boundExcKeydownHandler);
-
-        this.fire('app-reset-layout');
-    }
-
-    private _tabKeydownHandler(event: { keyCode: number; shiftKey: any; preventDefault: () => void; }): void {
-        if (this.noFocusTrap) {
-            return;
+    var TAB_KEYCODE = 9;
+    if (this.props._drawerState === this.props['_DRAWER_STATE.OPENED'] &&
+      event.keyCode === TAB_KEYCODE) {
+      if (event.shiftKey) {
+        if (this.props._firstTabStop &&
+          (event as KeyboardEvent).target === this.props._firstTabStop) {
+          event.preventDefault();
+          (this.props._lastTabStop! as HTMLElement).focus();
         }
-
-        var TAB_KEYCODE = 9;
-        if (this.props._drawerState === this.props['_DRAWER_STATE.OPENED'] &&
-            event.keyCode === TAB_KEYCODE) {
-            if (event.shiftKey) {
-                if (this.props._firstTabStop &&
-                    (event as KeyboardEvent).target === this.props._firstTabStop) {
-                    event.preventDefault();
-                    (this.props._lastTabStop! as HTMLElement).focus();
-                }
-            } else {
-                if (this.props._lastTabStop && (event as KeyboardEvent).target === (this.props._lastTabStop! as HTMLElement)) {
-                    event.preventDefault();
-                    (this.props._firstTabStop! as HTMLElement).focus();
-                }
-            }
+      } else {
+        if (this.props._lastTabStop && (event as KeyboardEvent).target === (this.props._lastTabStop! as HTMLElement)) {
+          event.preventDefault();
+          (this.props._firstTabStop! as HTMLElement).focus();
         }
+      }
     }
+  }
 
-    private _escKeydownHandler(event: { keyCode: number; preventDefault: () => void; }): void {
-        var ESC_KEYCODE = 27;
-        if (event.keyCode === ESC_KEYCODE) {
-            // Prevent any side effects if app-drawer closes.
-            event.preventDefault();
-            this.close();
-        }
+  private _escKeydownHandler(event: { keyCode: number; preventDefault: () => void; }): void {
+    var ESC_KEYCODE = 27;
+    if (event.keyCode === ESC_KEYCODE) {
+      // Prevent any side effects if app-drawer closes.
+      event.preventDefault();
+      this.close();
     }
+  }
 
-    public disconnectedCallback(): void {
-        super.disconnectedCallback();
-        this.removeEventListener('keydown', this.props._boundEscKeydownHandler);
-        this.removeEventListener('keydown', this.props._tabKeydownHandler);
-    }
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.removeEventListener('keydown', this.props._boundEscKeydownHandler);
+    this.removeEventListener('keydown', this.props._tabKeydownHandler);
+  }
 
-    /**
-     * Opens the drawer.
-     */
-    public open(): void {
-        this.opened = true;
-        this.fire('drawer-opened-changed', true);
-    }
+  /**
+   * Opens the drawer.
+   */
+  public open(): void {
+    this.opened = true;
+    this.fire('drawer-opened-changed', true);
+  }
 
-    /**
-     * Closes the drawer.
-     */
-    public close(): void {
-        this.opened = false;
-        this.fire('drawer-opened-changed', false);
-    }
+  /**
+   * Closes the drawer.
+   */
+  public close(): void {
+    this.opened = false;
+    this.fire('drawer-opened-changed', false);
+  }
 
-    toggleClassMenu(): void {
-        if (!this.$.content.classList.contains("menu--visible")) {
-            this.$.content.classList.add("menu--visible");
-        } else {
-            this.$.content.classList.remove('menu--visible');
-        }
+  toggleClassMenu(): void {
+    if (!this.$.content.classList.contains("menu--visible")) {
+      this.$.content.classList.add("menu--visible");
+    } else {
+      this.$.content.classList.remove('menu--visible');
     }
+  }
 }
 
+
 declare global {
-    interface HTMLElementTagNameMap {
-        'app-drawer': AppDrawer;
-    }
+  interface HTMLElementTagNameMap {
+    'app-drawer': AppDrawer;
+  }
 }

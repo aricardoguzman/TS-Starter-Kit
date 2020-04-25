@@ -13,7 +13,7 @@ export class AppHeader extends BaseLit {
     css`
 
       :host([top]){
-        background-color: transparent;
+        background-color: var(--app-header-bg-color, blue);;
         transform: translateY(0);
       }
 
@@ -53,7 +53,7 @@ export class AppHeader extends BaseLit {
     `];
 
   @property()
-  title = "Header"
+  title = "Auctions App"
 
   @property({ type: Boolean, reflect: true })
   top = true;
@@ -119,6 +119,7 @@ export class AppHeader extends BaseLit {
   }
 
 }
+
 
 declare global {
   interface HTMLElementTagNameMap {

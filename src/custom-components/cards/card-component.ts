@@ -7,18 +7,22 @@ export class CardComponent extends BaseLit {
   @property({ type: Boolean })
   shadowBox = false;
 
+  @property({ type: Number })
+  width = 275;
+
+  @property({ type: Number })
+  height = 300;
+
   static styles = [
     css`
       :host(.expanded){
         padding: initial;
-        height: 600px;
       }
 
       :host {
         border-radius: 10px;
         position: relative;
         display: block;
-        height: 300px;
         padding: 12.5px 0;
         -webkit-transition: height 1s ease;
         -moz-transition: height 1s ease;
@@ -27,8 +31,6 @@ export class CardComponent extends BaseLit {
       }
 
       .face {
-        width: 275px;
-        height: 275px;
         transition: 0.5s;
         border-radius: 10px;
       }
@@ -36,7 +38,7 @@ export class CardComponent extends BaseLit {
       .face1 {
         border-radius: 10px;
         position: relative;
-        background: var(--default-primary-color);
+        background: var(--card-bg);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -46,7 +48,6 @@ export class CardComponent extends BaseLit {
 
       .face2 {
         border-radius: 10px;
-        height: 275px;
         position: relative;
         background: #fff;
         display: flex;
@@ -101,6 +102,23 @@ export class CardComponent extends BaseLit {
 
   render() {
     return html`
+        ${this.width != 275 || this.height != 300 ? html`
+          <style>
+                  .face {
+                    width: ${this.width}px;
+                    height: ${this.height - 25}px;
+                  }
+
+                  :host{
+                    height: ${this.height}px;
+                  }
+
+                  :host(.expanded){
+                    padding: initial;
+                    height: ${2 * this.height}px;
+                  }
+          </style>
+        `: ''}
         <div class="face face1">
           <div class="content">
             <slot name="img"></slot>

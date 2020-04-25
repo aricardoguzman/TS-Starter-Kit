@@ -1,12 +1,10 @@
 import { BaseLit, customElement, property, css, html } from './base-element';
 import './custom-components/layout/app-drawer';
 import './custom-components/layout/app-header';
-import './custom-components/cards/card-component';
-import './utilities/helpers';
+import { installRouter } from './utilities/helpers';
 import { menuIcon } from './icons/icons';
 import { IconStyle, ScrollBarStyle, TypographyStyle } from './styles/main-shared-style';
 import { AppHeader } from './custom-components/layout/app-header';
-//import { AppHeader } from './custom-components/layout/app-header';
 
 @customElement('main-app')
 export class MainApp extends BaseLit {
@@ -91,17 +89,42 @@ export class MainApp extends BaseLit {
       grid-row: 2 / 3;
       background: var(--default-primary-color);
       height: 50px;
-    }`
+    }
+
+    p {
+      text-align: justify;
+      margin: 0;
+    }
+
+    .icon {
+      pointer-events: initial;
+    }
+    `
   ];
+
+  @property({ type: Object })
+  vehicle = {}
+
+  @property({ type: String })
+  last_page = "";
+
+  @property({ type: Object })
+  user: any = {}
 
   @property()
   appTitle = "Auctions"
+
+  @property({ type: String })
+  auction_id = "";
 
   @property({ type: String })
   _page = "home"
 
   @property({ type: Boolean })
   _drawerOpened = false;
+
+  @property({ type: Boolean })
+  _authenticated = false;
 
   render() {
     return html`
@@ -125,60 +148,23 @@ export class MainApp extends BaseLit {
     </app-drawer>
 
      <main id="main-content" class="body-1">
-      <div style=" display:flex; justify-content: space-around; flex-wrap: wrap ">
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-        <card-component>
-          <img src="https://pbs.twimg.com/profile_images/1149343940300218370/tI3Yfg-I.png" slot="img" style="max-width: 100%; max-height: 100%; object-fit: contain">
-          <h3 class="headline-3" slot="container">Headline 3</h3>
-          <p slot="container">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-        </card-component>
-      </div>
-     <footer></footer>
+      <home-view ?active="${this._page == 'home'}" class="page"></home-view>
+      <login-view ?active="${this._page == 'login'}" class="page" @auth-changed=${this._authChanged}></login-view>
+      <auction-view ?active="${this._page == 'subasta'}" class="page"></auction-view>
+      <error-view ?active="${this._page == 'error'}" class="page"></error-view>
+     <footer>
+     </footer>
      </main>
     `;
+  }
+
+  private _authChanged(e: CustomEvent) {
+    this.user = { ...e.detail };
+    localStorage.User = JSON.stringify({ ...this.user, "exp": Date.now() + 1 * 60000 })
+    this._authenticated = true;
+    window.history.pushState(null, '', '/' + this.last_page);
+    this.last_page = '';
+    this._locationChanged(location);
   }
 
   private _drawerOpenedChanged(e: CustomEvent): void {
@@ -186,8 +172,72 @@ export class MainApp extends BaseLit {
   }
 
   public firstUpdated() {
-    (<AppHeader>this.$$('app-header')!).setScrollElement(this._('main-content'))
+    (<AppHeader>this.$$('app-header')!).setScrollElement(this._('main-content'));
+    installRouter((location) => this._locationChanged(location));
+    /**
+     * We check if user is authenticated
+     */
+    if (localStorage.User !== undefined && localStorage.User !== null) {
+      let tUser = JSON.parse(localStorage.User);
+      if (tUser == null) return;
+      if (tUser.exp - Date.now() > 0) {
+        this.user = tUser;
+        this._authenticated = true;
+      } else
+        localStorage.User = null;
+    }
   }
+
+  _locationChanged(location: Location) {
+    const path = window.decodeURIComponent(location.pathname);
+    const page = path === '/' ? 'home' : path.slice(1);
+    this._loadPage(page);
+    this._updateDrawerState(false);
+  }
+
+  _updateDrawerState(opened: boolean) {
+    if (opened !== this._drawerOpened) {
+      this._drawerOpened = opened;
+    }
+  }
+
+  _loadPage(page: string) {
+
+    switch (page) {
+      case 'home':
+        import('./pages/home-view');
+        break;
+      case 'login':
+        import('./pages/login-view');
+        break;
+      case 'subasta':
+        this.last_page = 'subasta';
+        if (!this._checkAuthentication('', page))
+          return;
+        else
+          import('./pages/auction-view');
+        break;
+      default:
+        this._page = 'error';
+        import('./pages/error-view');
+        return;
+    }
+
+    this._page = page;
+  }
+
+  _checkAuthentication(_token: string, _page: string) {
+    // change for token validity
+    if (!this._authenticated && _page !== "home") {
+      window.history.pushState(null, '', '/login');
+      this._locationChanged(location);
+      return false;
+    } else {
+      //redirect to home
+      return true;
+    }
+  }
+
 }
 
 declare global {

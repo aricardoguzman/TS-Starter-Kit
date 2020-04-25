@@ -24,30 +24,60 @@ export const IconStyle = css`
         height: 24px;
         fill: var(--icon-fill-color, var(--text-primary-color, black));
         cursor: pointer;
+        pointer-events: none;
     }`
 
 export const TypographyStyle = css`
 
+    .underline {
+        background: var(--divider-color);
+        height: 2px;
+        margin: auto;
+        width: 80%;
+    }
+
     .headline-1, .headline-2, .headline-3, .headline-4, .headline-5, .headline-6,
     .subtitle-1, .subtitle-2 {
         font-family: "Julius Sans One";
+        margin: 8px auto;
+        padding: 0;
     }
 
-    .headline-1 { font-size: 78; font-weight: lighter; }
-    .headline-2 { font-size: 49; font-weight: lighter; }
-    .headline-3 { font-size: 39 }
-    .headline-4 { font-size: 28 }
-    .headline-5 { font-size: 20 }
-    .headline-6 { font-size: 16; font-weight: medium; }
+    .headline-1 { font-size: 78px; font-weight: lighter; }
+    .headline-2 { font-size: 49px; font-weight: lighter; }
+    .headline-3 { font-size: 39px; }
+    .headline-4 { font-size: 28px; }
+    .headline-5 { font-size: 20px; }
+    .headline-6 { font-size: 16px; font-weight: medium; }
+
+    p { margin: 0; text-align: justify; }
 
     .body-1, .body-2, .button, .overline, .caption { font-family: "Crimson Text"; }
 
-    .body-1 { font-size: 20 }
-    .body-2 { font-size: 18; font-weight: medium; }
-    .subtitle-1 { font-size: 13 }
-    .subtitle-2 { font-size: 11}
-    .button  { font-size: 18; }
-    .overline{ font-size: 13; }
-    .caption { font-size: 15 };
+    .body-1 { font-size: 20px; }
+    .body-2 { font-size: 18px; font-weight: medium; }
+    .subtitle-1 { font-size: 13px; }
+    .subtitle-2 { font-size: 11px; }
+    .button  { font-size: 18px; }
+    .overline{ font-size: 13px; }
+    .caption { font-size: 15px; }
     .button, .caption, .overline {text-transform: uppercase; }
+`
+
+export const ButtonStyles = css`
+
+    .linked-btn{
+        outline: none;
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        padding: 8px;
+        display: block;
+        width: 127px;
+        text-align: center;
+        border-radius: 10px;
+        margin: 8px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
 `
