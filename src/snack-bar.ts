@@ -14,7 +14,7 @@ export class SnackBar extends BaseLit {
         left: 0;
         right: 0;
         padding: 12px;
-        background-color: var(--app-secondary-color);
+        background-color: black;
         color: white;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         text-align: center;
@@ -42,6 +42,7 @@ export class SnackBar extends BaseLit {
       <slot></slot>
     `;
   }
+
 }
 
 declare global {

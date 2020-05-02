@@ -5,6 +5,7 @@ import { installRouter } from './utilities/helpers';
 import { menuIcon } from './icons/icons';
 import { IconStyle, ScrollBarStyle, TypographyStyle } from './styles/main-shared-style';
 import { AppHeader } from './custom-components/layout/app-header';
+import './snack-bar';
 
 @customElement('main-app')
 export class MainApp extends BaseLit {
@@ -99,11 +100,55 @@ export class MainApp extends BaseLit {
     .icon {
       pointer-events: initial;
     }
+
+    .drawer-list > a{
+      width: 100%;
+      display: block;
+      box-sizing: border-box;
+      padding: 16px 16px;
+      color: white;
+      text-decoration: none;
+      outline: none;
+      color: grey;
+    }
+
+    a[selected], a:hover{
+      border-left: 4px solid var(--dark-primary-color);
+      background: var(--accent-color);
+      color: white;
+    }
+
+    div.underline {
+      margin-bottom: 25px;
+    }
     `
   ];
 
+  @property({ type: Boolean })
+  showsnackbar = false;
+
+  @property({ type: String })
+  snackbarMessage = '';
+
+  @property({ type: Object })
+  credentials = {
+    "grant_type": "client_credentials",
+    "client_id": "98498xc6516zxcv",
+    "client_secret": "azxh_$84cv",
+    "audience": "subasta"
+  }
+
   @property({ type: Object })
   vehicle = {}
+
+  @property({ type: Array })
+  vehicle_photos: Array<any> = []
+
+  @property({ type: String })
+  esb_url = 'http://146.148.68.236'
+
+  @property({ type: String })
+  token_url = 'http://35.202.112.35/oauth/token'
 
   @property({ type: String })
   last_page = "";
@@ -135,27 +180,60 @@ export class MainApp extends BaseLit {
      <app-drawer .opened="${this._drawerOpened}"
         @drawer-opened-changed="${this._drawerOpenedChanged}">
       <nav class="drawer-list">
-        <span class="drawer-icon"></span>
+        <span class="drawer-icon">
+          <img width="100%" height="100%" src="../imgs/logo.png"/>
+        </span>
+        <div class="underline" ></div>
+        <a ?selected="${this._page === 'home'}" href="/" ><span></span>Home</a>
+        <a ?selected="${this._page === 'subasta'}" href="/subasta"><span></span>Subasta</a>
+        ${this._authenticated ? html`<a ?selected="${this._page === 'profile'}" href="/profile"><span></span>Profile</a>` : ''}
         <div class="underline"></div>
-        <a ?selected="${this._page === 'home'}" href="/"><span></span>Home</a>
-        <a ?selected="${this._page === 'ordenes'}" href="/ordenes"><span></span>Ordenes</a>
-        <a ?selected="${this._page === 'dashboard'}" href="/dashboard"><span></span>Dashboard</a>
-        <a ?selected="${this._page === 'inventario'}" href="/inventario"><span></span>Inventario</a>
-        <a ?selected="${this._page === 'diario'}" href="/diario"><span></span>Diario</a>
-        <a ?selected="${this._page === 'consultas'}" href="/consultas"><span></span>Consultas</a>
-        <div class="underline"></div>
+        <a @click="${this._logout}" href="${this._authenticated ? '/' : '/login'}"><span></span>${this._authenticated ? 'Logout' : 'Login'}</a>
       </nav>
     </app-drawer>
 
      <main id="main-content" class="body-1">
-      <home-view ?active="${this._page == 'home'}" class="page"></home-view>
-      <login-view ?active="${this._page == 'login'}" class="page" @auth-changed=${this._authChanged}></login-view>
-      <auction-view ?active="${this._page == 'subasta'}" class="page"></auction-view>
+      <home-view ?active="${this._page == 'home'}"
+                class="page"
+                .credentials=${this.credentials}
+                .esburl=${this.esb_url}
+                .tokenurl=${this.token_url}
+                @vehicle-selected="${this._setVehicle}"></home-view>
+      <login-view ?active="${this._page == 'login'}"
+                  class="page"
+                  .credentials=${this.credentials}
+                  @auth-changed=${this._authChanged}
+                  .esburl=${this.esb_url}
+                  .tokenurl=${this.token_url}></login-view>
+      <auction-view
+        ?active="${this._page == 'subasta'}"
+        class="page"
+        .user=${this.user}
+        .credentials=${this.credentials}
+        .esburl=${this.esb_url}
+        .tokenurl=${this.token_url}
+        .data=${this.vehicle}
+        .fotos=${this.vehicle_photos}></auction-view>
+      <profile-view
+        @user-changed=${() => this.user = { ...this.user, vigente: true }}
+        .user=${this.user}
+        .esburl=${this.esb_url}
+        .tokenurl=${this.token_url}
+        .credentials=${this.credentials}
+        ?active="${this._page == 'profile'}"
+        class="page"></profile-view>
       <error-view ?active="${this._page == 'error'}" class="page"></error-view>
      <footer>
      </footer>
+     <snack-bar ?active=${this.showsnackbar}>${this.snackbarMessage}</snack-bar>
      </main>
     `;
+  }
+
+  private _setVehicle(e: CustomEvent) {
+    this.vehicle = { ...e.detail };
+    this.vehicle_photos = [...e.detail.fotos];
+
   }
 
   private _authChanged(e: CustomEvent) {
@@ -177,6 +255,13 @@ export class MainApp extends BaseLit {
     /**
      * We check if user is authenticated
      */
+    let self = this;
+    window.addEventListener('error', (e: Event) => {
+      self.showsnackbar = true;
+      self.snackbarMessage = (<CustomEvent>e).detail;
+      setTimeout(() => self.showsnackbar = false, 1500)
+    })
+
     if (localStorage.User !== undefined && localStorage.User !== null) {
       let tUser = JSON.parse(localStorage.User);
       if (tUser == null) return;
@@ -184,7 +269,7 @@ export class MainApp extends BaseLit {
         this.user = tUser;
         this._authenticated = true;
       } else
-        localStorage.User = null;
+        delete localStorage.User;
     }
   }
 
@@ -210,10 +295,20 @@ export class MainApp extends BaseLit {
       case 'login':
         import('./pages/login-view');
         break;
+      case 'profile':
+        this.last_page = 'profile';
+        if (!this._checkAuthentication('', page))
+          return;
+        else
+          import('./pages/profile-view');
+        break;
       case 'subasta':
         this.last_page = 'subasta';
         if (!this._checkAuthentication('', page))
           return;
+        else if (!this._redirectHome(page)) {
+          return;
+        }
         else
           import('./pages/auction-view');
         break;
@@ -232,12 +327,33 @@ export class MainApp extends BaseLit {
       window.history.pushState(null, '', '/login');
       this._locationChanged(location);
       return false;
+    } else if (this._authenticated && !this.user.vigente && _page !== 'profile') {
+      //redirect to home
+      window.history.pushState(null, '', '/profile');
+      this._locationChanged(location);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  _redirectHome(_page: string) {
+    if (this.isObjectEmpty(this.vehicle) && _page !== "home") {
+      window.history.pushState(null, '', '/');
+      this._locationChanged(location);
+      return false;
     } else {
       //redirect to home
       return true;
     }
   }
 
+  _logout() {
+    this._authenticated = false;
+    this.user = {}
+    delete localStorage.User
+    this.requestUpdate();
+  }
 }
 
 declare global {

@@ -41,7 +41,7 @@ export class RippleEffect extends BaseLit {
         position:relative;
         overflow:hidden;
         transition: all 0.2s ease;
-        z-index:0;
+        z-index:50;
       }
 
       .ink {

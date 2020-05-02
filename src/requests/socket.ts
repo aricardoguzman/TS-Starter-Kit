@@ -50,13 +50,32 @@ class Socket {
 
 export const socket = new Socket();
 */
-import openSocket from 'socket.io-client';
+import * as io from 'socket.io-client';
 
-const socket = openSocket('http://localhost:3000');
 
-function subscribeToTimer(cb: any) {
-  socket.on('welcome', (a: any) => alert(a));
-  socket.on('mensaje', (timestamp: any) => cb(null, timestamp));
-  socket.emit('hello', "puto");
+export class Socket {
+  socket: any;
+  vehicleId: string = '';
+
+  public joinRoom(vehicle_id: string, base_price: number, min_price: number): void {
+    this.vehicleId = vehicle_id;
+    this.socket = io.connect('/', { upgrade: false, transports: ['websocket'], reconnection: true, forceNew: false });
+    //this.socket.on('welcome', (a: any) => alert(a));
+    this.socket.on('price-changed', (a: any) => {
+      window.dispatchEvent(new CustomEvent('price-changed', { detail: a }));
+    });
+    this.socket.on('finish', () => alert('Se acabó la subasta!'));
+    this.socket.on('room-data', (e: any) => {
+      window.dispatchEvent(new CustomEvent('room-data', { detail: JSON.parse(e) }));
+    });
+
+
+    let str = JSON.stringify({ vehicle_id: this.vehicleId, base_price, min_price });
+    this.socket.emit('join-room', str);
+  }
+
+
+  public close() {
+    this.socket.disconnect();
+  }
 }
-export { subscribeToTimer };

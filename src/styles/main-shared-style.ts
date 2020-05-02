@@ -31,7 +31,7 @@ export const TypographyStyle = css`
 
     .underline {
         background: var(--divider-color);
-        height: 2px;
+        height: 1px;
         margin: auto;
         width: 80%;
     }

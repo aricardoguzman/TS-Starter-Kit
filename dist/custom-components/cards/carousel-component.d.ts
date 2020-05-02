@@ -1,12 +1,7 @@
 import { BaseLit } from '../../base-element';
-interface Item {
-    url: string;
-    title: string;
-    caption: string;
-}
 export declare class CarouselComponent extends BaseLit {
     transitionHandler: any;
-    items: Array<Item>;
+    items: Array<any>;
     index: number;
     photos: any;
     width: number;
@@ -22,5 +17,4 @@ declare global {
         'carousel-component': CarouselComponent;
     }
 }
-export {};
 //# sourceMappingURL=carousel-component.d.ts.map

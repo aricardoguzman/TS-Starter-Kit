@@ -38,11 +38,17 @@ export class PageView extends BaseLit {
     `];
   }
 
+  @property({ type: Object })
+  credentials: any
+
   @property({ type: Boolean, reflect: true })
   active = true;
 
+  @property({ type: String })
+  esburl = ''
 
-
+  @property({ type: String })
+  tokenurl = ''
 }
 
 declare global {

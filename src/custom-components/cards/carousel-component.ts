@@ -3,19 +3,13 @@ import { forwardArrowIcon, backwardArrowIcon } from '../../icons/icons';
 import { IconStyle, TypographyStyle } from '../../styles/main-shared-style';
 
 
-interface Item {
-  url: string;
-  title: string;
-  caption: string;
-}
-
 @customElement('carousel-component')
 export class CarouselComponent extends BaseLit {
 
   transitionHandler: any;
 
   @property({ type: Array })
-  items: Array<Item> = [];
+  items: Array<any> = [];
 
   @property({ type: Number })
   index = 1;
@@ -41,7 +35,7 @@ export class CarouselComponent extends BaseLit {
       }
 
       .container {
-        display: inline-flex;
+        display: flex;
         height: 100%;
         border-radius: 10px;
         align-self: flex-start;
@@ -110,31 +104,31 @@ export class CarouselComponent extends BaseLit {
       ${
       this.items.length > 1 ?
         html`
-        <div class="slider" style="background: url(${this.items[this.items.length - 1].url}) no-repeat center center / cover" id="lclone">
-              <div class="caption">
+        <div class="slider" style="background: url(${this.items[this.items.length - 1]}) no-repeat center center / cover" id="lclone">
+              <!--div class="caption">
                 <h2 class="headline-2">${this.items[this.items.length - 1].title}</h2>
                 <p>${this.items[this.items.length - 1].caption}</p>
-              </div>
+              </div-->
           </div>`: ''
       }
       ${
       this.items.map(it => html`
-        <div class="slider" style="background: url(${it.url}) no-repeat center center / cover">
-            <div class="caption">
+        <div class="slider" style="background: url(${it}) no-repeat center center / cover">
+            <!--div class="caption">
               <h2 class="headline-2">${it.title}</h2>
               <p>${it.caption}</p>
-            </div>
+            </div-->
         </div>
       `)
       }
       ${
       this.items.length > 1 ?
         html`
-        <div class="slider" style="background: url(${this.items[0].url}) no-repeat center center / cover" id="fclone">
-              <div class="caption">
+        <div class="slider" style="background: url(${this.items[0]}) no-repeat center center / cover" id="fclone">
+              <!--div class="caption">
                 <h2 class="headline-2">${this.items[0].title}</h2>
                 <p>${this.items[0].caption}</p>
-              </div>
+              </div-->
           </div>`: ''
       }
     </div>

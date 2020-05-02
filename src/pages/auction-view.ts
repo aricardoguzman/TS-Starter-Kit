@@ -5,23 +5,23 @@ import '../custom-components/input/custom-input';
 import '../custom-components/cards/carousel-component';
 import { carousel_data as Carousel } from '../data/tmp-data'
 //import { fetchQuery, serviceCredentials } from '../requests/request';
-import { subscribeToTimer } from '../requests/socket'
+import { Socket } from '../requests/socket'
+import { fetchQuery } from '../requests/request';
 
 
 @customElement('auction-view')
 export class AuctionView extends PageView {
 
+  socket: any;
+
+  @property({ type: Boolean })
+  shouldOpen = false;
+
   @property({ type: Object })
-  data = {
-    "url": "../../imgs/m2.jpeg",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "name": "vehicle 2",
-    "auction_id": "849489456128",
-    "base_price": 5000,
-    "owner": null,
-    "init": Date.now() + 5 * 60000,
-    "exp": 60000 * 1
-  }
+  user: any = {}
+
+  @property({ type: Object })
+  data: any = {}
 
   @property({ type: Array })
   fotos = Carousel
@@ -35,6 +35,9 @@ export class AuctionView extends PageView {
   @property({ type: Number })
   price = 0;
 
+  @property({ type: Object })
+  auction: any
+
   @property({ type: String })
   winner = ""
 
@@ -44,13 +47,6 @@ export class AuctionView extends PageView {
     //TODO: fetch data
     //fetchQuery(serviceCredentials[0].url,'GET');
     //from data we set price
-    subscribeToTimer((err: any, timestamp: any) => {
-      if (err)
-        console.log(err);
-
-      console.log(err, timestamp);
-      this.requestUpdate();
-    });
   }
 
 
@@ -116,25 +112,29 @@ export class AuctionView extends PageView {
         button {
           height: 50px;
         }
+
+        .linked-btn{
+          padding: 16px;
+        }
       `
     ];
   }
 
   render() {
     return html`
-      <carousel-component .items=${this.fotos}></carousel-component>
+      <carousel-component .items=${this.data.fotos}></carousel-component>
       <div class="form">
         <div>
           <h1 class="headline-1">Subasta</h1>
-          <label class="first-price">${this.data['auction_id']}</label>
+          <label class="first-price">${(this.auction && this.auction['_id']) || '-'}</label>
         </div>
         <div>
           <h1 class="headline-1" style="position:sticky;">Restante</h1>
-          ${this.available ? html`<custom-counter @time-is-up=${this._timeUp} .max="${this._leftTime}"></custom-counter>` : html`<label class="first-price">Not Available</label>`}
+          ${this.available ? html`<custom-counter @time-is-up=${this._timeUp} .max=${this.auction && parseInt((this.auction['fin'] - Date.now()) / 1000)}></custom-counter>` : html`<label class="first-price">Not Available</label>`}
         </div>
         <div>
           <h1 class="headline-1">Costo partida</h1>
-          <label class="first-price">${this.data['base_price']}</label>
+          <label class="first-price">${this.data['precio_base']}</label>
         </div>
         <div>
           <h1 class="headline-1">Última puja</h1>
@@ -143,25 +143,45 @@ export class AuctionView extends PageView {
         <div class="full-line">
           <h1 class="headline-1">Pujar</h1>
           <div class="buttons">
-            <ripple-container> <button class="button linked-btn"> Media </button> </ripple-container>
-            <ripple-container> <button class="button linked-btn"> Full </button></ripple-container>
+            <ripple-container @click="${this.pushHalf}"> <button class="button linked-btn"> Media </button> </ripple-container>
+            <ripple-container @click="${this.pushFull}"> <button class="button linked-btn"> Full </button></ripple-container>
           </div>
         </div>
       </div>
     `;
   }
 
+  public firstUpdated() {
+    let self = this;
+    window.addEventListener('room-data', (e: any) => {
+      self.auction = e.detail;
+      self.price = e.detail.current;
+      self.requestUpdate();
+    });
+
+    window.addEventListener('price-changed', (e: any) => {
+      self.price = e.detail;
+      self.requestUpdate();
+    });
+  }
+
   public attributeChangedCallback(name: string, old: string | null, value: string | null): void {
 
     if (name === 'active') {
-      if (value === '') {
-        //revisar
-        if (this.data.init >= Date.now()) {
-          this.available = true;
-        } else {
-
-        }
-
+      if (value === '' && old !== null) {
+        //alert('abriendo el socket firstupdated')
+        this.available = true;
+        this.socket = new Socket();
+        this.socket.joinRoom(this.data.id, this.data.precio_base, this.data.minimo_requerido);
+        this.shouldOpen = true;
+      } else if (this.shouldOpen && old === null) {
+        //alert('abriendo el socket no first')
+        this.available = true;
+        this.socket = new Socket();
+        this.socket.joinRoom(this.data.id, this.data.precio_base, this.data.minimo_requerido);
+      } else if (value === null && old === '') {
+        //alert('cerrando el socket :O')
+        this.socket.close();
       }
     }
     super.attributeChangedCallback(name, old, value)
@@ -171,8 +191,30 @@ export class AuctionView extends PageView {
     this.available = false;
   }
 
-  private _leftTime(): number {
-    return 500;
+  private pushHalf() {
+    let data = {
+      auction_id: this.auction['_id'],
+      vehicle_id: this.data['id'],
+      type: 0,
+      client_id: this.user['codigo'],
+      timestamp: Date.now(),
+      price: this.price
+    }
+    console.log(data);
+    fetchQuery("/bids", "POST", data);
+  }
+
+  private pushFull() {
+    let data = {
+      auction_id: this.auction['_id'],
+      vehicle_id: this.data['id'],
+      type: 1,
+      client_id: this.user['codigo'],
+      timestamp: Date.now(),
+      price: this.price
+    }
+    console.log(data);
+    fetchQuery("/bids", "POST", data);
   }
 
 }

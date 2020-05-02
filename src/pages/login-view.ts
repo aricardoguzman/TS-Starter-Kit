@@ -3,13 +3,11 @@ import { PageView } from './page-view';
 import { TypographyStyle, ButtonStyles } from '../styles/main-shared-style';
 import '../custom-components/cards/card-component';
 import '../custom-components/input/custom-input';
+import '../container/ripple-container';
 import { fetchQuery } from '../requests/request';
 
 @customElement('login-view')
 export class LoginView extends PageView {
-
-  tokenURL = 'http://35.193.70.253/GetToken?client_id=999888777666555444&password=oficina123**';
-  officeURL = 'http://35.225.144.113/Afiliado';
 
   @property({ type: String })
   title = 'Login';
@@ -32,6 +30,8 @@ export class LoginView extends PageView {
         }
 
         .form {
+          padding-top: 40px;
+          box-sizing: border-box;
           height: 70vh;
           width: 30%;
           margin: auto;
@@ -46,7 +46,7 @@ export class LoginView extends PageView {
           width: 60%;
         }
 
-        h1 {
+        h2 {
           text-align: center;
           text-transform: none;
         }
@@ -68,9 +68,9 @@ export class LoginView extends PageView {
   render() {
     return html`
       <div class="form">
-        <h1 class="headline-1"> ${this.title} </h1>
+        <h2 class="headline-2"> ${this.title} </h2>
         <div class="underline" style="margin-bottom: 40px;"></div>
-        <custom-input label="Username" id="username"></custom-input>
+        <custom-input label="${this.suscribe ? 'Nombre' : 'Codigo'}" id="username"></custom-input>
         <custom-input label="Password" type="password" id="password"></custom-input>
         <div class="underline" sytle="margin-top: 40px;"></div>
         <div style="margin:auto; width:57.5%;">
@@ -87,23 +87,42 @@ export class LoginView extends PageView {
   private async _authenticate() {
 
     //TODO: get service token
-    let token: any = await fetchQuery(this.tokenURL, 'GET', undefined);
+    let token: any = await fetchQuery(this.tokenurl, 'POST', this.credentials);
     //alert(token);
     //This request goes to the ESB
     let username = (<HTMLInputElement>this._('username'))!.value;
     let password = (<HTMLInputElement>this._('password'))!.value;
 
-    fetchQuery(this._constructURL(<string>token.token, <string>username, <string>password), this.suscribe ? 'POST' : 'GET', undefined)
-      .then((data) => {
-        this.fire('auth-changed', data)
-      }).catch((err) => {
-        console.log(err);
-      })
+    if (!this.suscribe) {
+      fetchQuery(this._constructURL(<string>token.token, <string>username, <string>password), 'GET', undefined)
+        .then((data: any) => {
+          if (data.code !== undefined && data.code !== 200) {
+            throw Error('Unauthorized');
+          }
+          this.fire('auth-changed', data);
+        }).catch((err) => {
+          console.log(err);
+          window.dispatchEvent(new CustomEvent("error", { detail: "Credenciales inválidas" }));
+        })
+    } else {
+      fetchQuery(`${this.esburl}/Afiliado`, 'POST', { jwt: token.token, nombre: username, password: password })
+        .then((data: any) => {
+          if (data.code !== undefined && data.code !== 200) {
+            throw Error('Unable to change data');
+          } else {
+            this.fire('user-changed', data);
+          }
+        }).catch((err) => {
+          console.log(err);
+          window.dispatchEvent(new CustomEvent("error", { detail: "Ocurrió un error al actualizar data" }));
+        })
+    }
+
 
   }
 
   private _constructURL(token: string, username: string, password: string): string {
-    return `${this.officeURL}?jwt=${token}&codigo=${username}&password=${password}`;
+    return `${this.esburl}/Afiliado?jwt=${token}&codigo=${username}&password=${password}`;
   }
 
   private _changeTitle() {

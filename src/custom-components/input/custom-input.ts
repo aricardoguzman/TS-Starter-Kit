@@ -62,7 +62,7 @@ export class CustomInput extends BaseLit {
           bottom: 10px;
           position: absolute;
           width: 100%;
-          height: 2px;
+          height: 1px;
           background: var(--custom-input-focus-color,var(--default-primary-color, red));
           display: block;
           transform: rotateY(90deg);
