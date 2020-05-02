@@ -64,7 +64,7 @@ export class Socket {
     this.socket.on('price-changed', (a: any) => {
       window.dispatchEvent(new CustomEvent('price-changed', { detail: a }));
     });
-    this.socket.on('finish', () => alert('Se acabó la subasta!'));
+    this.socket.on('finish', (e: any) => window.dispatchEvent(new CustomEvent('error', { detail: 'Se acabó la subasta!' + e })));
     this.socket.on('room-data', (e: any) => {
       window.dispatchEvent(new CustomEvent('room-data', { detail: JSON.parse(e) }));
     });

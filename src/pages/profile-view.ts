@@ -232,7 +232,7 @@ export class ProfileView extends PageView {
     fetchQuery(this.esburl + '/Afiliado', "PUT", data)
       .then((d) => {
         console.log(d);
-        this.fire("user-payed")
+        window.dispatchEvent(new CustomEvent('error', { detail: "Cambios realizados correctamente" }))
       })
       .catch((err) => {
         alert("Ocurrió un error");
