@@ -110,7 +110,8 @@ export class LoginView extends PageView {
           if (data.code !== undefined && data.code !== 200) {
             throw Error('Unable to change data');
           } else {
-            this.fire('user-changed', data);
+            this.fire('auth-changed', data);
+            window.dispatchEvent(new CustomEvent("error", { detail: data.codigo }))
           }
         }).catch((err) => {
           console.log(err);

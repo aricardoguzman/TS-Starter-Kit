@@ -30,6 +30,7 @@
   "author": "Ricardo Guzmán",
   "license": "",
   "dependencies": {
+    "@types/node": "^13.13.4",
     "lit-element": "^2.2.1",
     "socket.io-client": "^2.3.0",
     "webcomponents-loader": "^1.0.1"
